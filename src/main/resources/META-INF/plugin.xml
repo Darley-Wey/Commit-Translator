@@ -1,15 +1,33 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.darleywey.committranslator</id>
-    <name>Commit-Translator</name>
-    <vendor>darley-wey</vendor>
+    <name>Commit Translator</name>
+    <vendor email="darleywey@gmail.com" url="https://github.com/Darley-Wey">Darley Wey</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <resource-bundle>messages.CommitTranslatorBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.darleywey.committranslator.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.darleywey.committranslator.startup.MyProjectActivity" />
+        <!-- Settings -->
+        <applicationService serviceImplementation="com.github.darleywey.committranslator.settings.CommitTranslatorSettings"/>
+        <applicationService serviceImplementation="com.github.darleywey.committranslator.services.TranslationService"/>
+        <applicationConfigurable
+                parentId="tools"
+                instance="com.github.darleywey.committranslator.settings.CommitTranslatorConfigurable"
+                id="com.github.darleywey.committranslator.settings.CommitTranslatorConfigurable"
+                displayName="Commit Translator"/>
     </extensions>
+
+    <actions>
+        <!-- Translate Commit Message Action -->
+        <action id="CommitTranslator.TranslateCommitMessage"
+                class="com.github.darleywey.committranslator.actions.TranslateCommitMessageAction"
+                text="Translate to English"
+                description="Translate commit message to English using AI"
+                icon="AllIcons.Actions.Translate">
+            <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
+        </action>
+    </actions>
 </idea-plugin>
