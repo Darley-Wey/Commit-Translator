@@ -57,32 +57,39 @@ class CommitTranslatorConfigurable : Configurable {
 
             panel {
                 row {
-                    label(CommitTranslatorBundle.message("settings.testConnection.input"))
-                        .align(AlignX.LEFT)
-                    label(CommitTranslatorBundle.message("settings.testConnection.output"))
-                        .align(AlignX.LEFT)
-                }
-
-                row {
-                    testInputField.text = CommitTranslatorBundle.message("settings.testConnection.input.default")
-                    testInputField.lineWrap = true
-                    testInputField.wrapStyleWord = true
-                    scrollCell(testInputField)
-                        .align(AlignX.LEFT)
-                        .applyToComponent {
-                            preferredSize = java.awt.Dimension(350, 150)
-                            minimumSize = java.awt.Dimension(350, 150)
+                    panel {
+                        row {
+                            label(CommitTranslatorBundle.message("settings.testConnection.input"))
                         }
-
-                    testOutputField.isEditable = false
-                    testOutputField.lineWrap = true
-                    testOutputField.wrapStyleWord = true
-                    scrollCell(testOutputField)
-                        .align(AlignX.LEFT)
-                        .applyToComponent {
-                            preferredSize = java.awt.Dimension(350, 150)
-                            minimumSize = java.awt.Dimension(350, 150)
+                        row {
+                            testInputField.text = CommitTranslatorBundle.message("settings.testConnection.input.default")
+                            testInputField.lineWrap = true
+                            testInputField.wrapStyleWord = true
+                            scrollCell(testInputField)
+                                .align(AlignX.LEFT)
+                                .applyToComponent {
+                                    preferredSize = java.awt.Dimension(350, 150)
+                                    minimumSize = java.awt.Dimension(350, 150)
+                                }
                         }
+                    }.align(AlignX.LEFT)
+
+                    panel {
+                        row {
+                            label(CommitTranslatorBundle.message("settings.testConnection.output"))
+                        }
+                        row {
+                            testOutputField.isEditable = false
+                            testOutputField.lineWrap = true
+                            testOutputField.wrapStyleWord = true
+                            scrollCell(testOutputField)
+                                .align(AlignX.LEFT)
+                                .applyToComponent {
+                                    preferredSize = java.awt.Dimension(350, 150)
+                                    minimumSize = java.awt.Dimension(350, 150)
+                                }
+                        }
+                    }.align(AlignX.LEFT)
                 }
 
                 row {
