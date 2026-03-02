@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-03-03
+
+### Added
+
+- Connection test panel with custom input/output for testing translations in settings
+- Full Chinese (Simplified) localization for all error messages and validation prompts
+
+### Fixed
+
+- Fixed settings panel layout and field alignment
+- Fixed some models rejecting requests due to unsupported default parameters
+- API error messages now properly returned to the user
+
 ## [0.0.2] - 2026-01-24
 
 ### Changed
@@ -28,6 +41,7 @@
 - Configurable API endpoint, model settings
 - English and Chinese (Simplified) localization
 
-[Unreleased]: https://github.com/Darley-Wey/Commit-Translator/compare/v0.0.2...HEAD
+[Unreleased]: https://github.com/Darley-Wey/Commit-Translator/compare/v0.0.3...HEAD
+[0.0.3]: https://github.com/Darley-Wey/Commit-Translator/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/Darley-Wey/Commit-Translator/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/Darley-Wey/Commit-Translator/commits/v0.0.1
