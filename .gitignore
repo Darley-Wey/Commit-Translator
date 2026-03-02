@@ -5,3 +5,11 @@
 .kotlin
 .qodana
 build
+
+# Test configuration files (may contain API keys)
+src/test/resources/test.properties
+src/test/resources/local.properties
+*.local.properties
+test-env.sh
+test-env.bat
+.env.test

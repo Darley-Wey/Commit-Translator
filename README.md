@@ -60,7 +60,7 @@ This plugin works with any OpenAI-compatible chat completion API:
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (unit tests)
 ./gradlew test
 
 # Run tests with coverage report
@@ -70,6 +70,20 @@ This plugin works with any OpenAI-compatible chat completion API:
 ./gradlew koverHtmlReport
 open build/reports/kover/html/index.html
 ```
+
+#### Integration Tests
+
+To run end-to-end integration tests with real API calls:
+
+```bash
+# Set your test API key
+export TEST_OPENAI_API_KEY="sk-your-api-key"
+
+# Run integration tests
+./gradlew test --tests TranslationServiceIntegrationTest
+```
+
+For more details, see [Integration Testing Guide (中文)](INTEGRATION_TESTING_CN.md).
 
 ### Automated Testing
 
@@ -81,6 +95,8 @@ This project uses GitHub Actions for continuous integration:
 For detailed testing documentation:
 - 📖 [Testing Guide (English)](src/test/README.md)
 - 📖 [测试指南 (中文)](TESTING_CN.md)
+- 📖 [Integration Testing Guide (中文)](INTEGRATION_TESTING_CN.md)
+- 📖 [Test API Key Configuration (中文)](TEST_API_KEY_CONFIG_CN.md)
 
 ---
 Plugin based on the [IntelliJ Platform Plugin Template][template].
