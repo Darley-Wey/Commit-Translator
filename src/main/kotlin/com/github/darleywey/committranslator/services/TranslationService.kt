@@ -37,7 +37,8 @@ class TranslationService {
         val model: String,
         val messages: List<ChatMessage>,
         val temperature: Double = 0.3,
-        val max_tokens: Int = 1000
+        val max_tokens: Int? = null,
+        val max_completion_tokens: Int? = null
     )
 
     @Serializable
@@ -49,6 +50,18 @@ class TranslationService {
     data class ChatResponse(
         val choices: List<ChatChoice>
     )
+
+    /**
+     * Determines if a model requires max_completion_tokens parameter instead of max_tokens.
+     * Models like gpt-5-nano and newer gpt-5+ models use max_completion_tokens.
+     */
+    private fun requiresMaxCompletionTokens(model: String): Boolean {
+        val modelLower = model.lowercase()
+        // gpt-5 series and o1 series use max_completion_tokens
+        return modelLower.startsWith("gpt-5") ||
+               modelLower.startsWith("o1") ||
+               modelLower.startsWith("o3")
+    }
 
     fun translateToEnglish(text: String): Result<String> {
         val settings = CommitTranslatorSettings.getInstance()
@@ -70,12 +83,15 @@ Rules:
 4. Only output the translated commit message, nothing else
 5. If the input is already in English, return it as is with minor improvements if needed"""
 
+        val useMaxCompletionTokens = requiresMaxCompletionTokens(settings.model)
         val request = ChatRequest(
             model = settings.model,
             messages = listOf(
                 ChatMessage("system", systemPrompt),
                 ChatMessage("user", text)
-            )
+            ),
+            max_tokens = if (useMaxCompletionTokens) null else 1000,
+            max_completion_tokens = if (useMaxCompletionTokens) 1000 else null
         )
 
         return try {
@@ -90,10 +106,11 @@ Rules:
                 .build()
 
             val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
-            
+
             if (response.statusCode() != 200) {
-                logger.warn("API request failed with status ${response.statusCode()}: ${response.body()}")
-                return Result.failure(RuntimeException("API request failed: ${response.statusCode()}"))
+                val errorBody = response.body()
+                logger.warn("API request failed with status ${response.statusCode()}: $errorBody")
+                return Result.failure(RuntimeException("API request failed (${response.statusCode()}): $errorBody"))
             }
 
             val chatResponse = json.decodeFromString<ChatResponse>(response.body())
