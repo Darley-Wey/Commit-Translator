@@ -55,6 +55,33 @@ This plugin works with any OpenAI-compatible chat completion API:
   Download the [latest release](https://github.com/Darley-Wey/Commit-Translator/releases/latest) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Gear Icon</kbd> > <kbd>Install plugin from disk...</kbd>
 
+## Development
+
+### Running Tests
+
+```bash
+# Run all tests
+./gradlew test
+
+# Run tests with coverage report
+./gradlew check
+
+# View coverage report
+./gradlew koverHtmlReport
+open build/reports/kover/html/index.html
+```
+
+### Automated Testing
+
+This project uses GitHub Actions for continuous integration:
+- Tests run automatically on all PRs and pushes to main branch
+- Code coverage is tracked via Kover and uploaded to CodeCov
+- Test results are available in the Actions tab
+
+For detailed testing documentation:
+- 📖 [Testing Guide (English)](src/test/README.md)
+- 📖 [测试指南 (中文)](TESTING_CN.md)
+
 ---
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 
