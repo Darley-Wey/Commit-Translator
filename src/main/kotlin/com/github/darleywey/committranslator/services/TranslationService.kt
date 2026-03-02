@@ -88,10 +88,11 @@ Rules:
                 .build()
 
             val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
-            
+
             if (response.statusCode() != 200) {
-                logger.warn("API request failed with status ${response.statusCode()}: ${response.body()}")
-                return Result.failure(RuntimeException("API request failed: ${response.statusCode()}"))
+                val errorBody = response.body()
+                logger.warn("API request failed with status ${response.statusCode()}: $errorBody")
+                return Result.failure(RuntimeException("API request failed (${response.statusCode()}): $errorBody"))
             }
 
             val chatResponse = json.decodeFromString<ChatResponse>(response.body())
