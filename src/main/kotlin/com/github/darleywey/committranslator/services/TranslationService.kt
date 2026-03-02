@@ -5,7 +5,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.net.URI
 import java.net.http.HttpClient
@@ -27,37 +26,19 @@ class TranslationService {
     }
 
     @Serializable
-    data class ChatMessage(
-        val role: String,
-        val content: String
-    )
+    data class ChatMessage(val role: String, val content: String)
 
     @Serializable
-    data class ChatRequest(
-        val model: String,
-        val messages: List<ChatMessage>
-    )
+    data class ChatRequest(val model: String, val messages: List<ChatMessage>)
 
     @Serializable
-    data class ChatChoice(
-        val message: ChatMessage
-    )
+    data class ChatChoice(val message: ChatMessage)
 
     @Serializable
-    data class ChatResponse(
-        val choices: List<ChatChoice>
-    )
+    data class ChatResponse(val choices: List<ChatChoice>)
 
-    fun testConnection(apiUrl: String, apiKey: String, model: String, input: String? = null): Result<String> {
-        if (apiKey.isBlank()) {
-            return Result.failure(IllegalStateException("API Key is not configured"))
-        }
-
-        if (apiUrl.isBlank()) {
-            return Result.failure(IllegalStateException("API URL is not configured"))
-        }
-
-        val systemPrompt = """You are a professional translator specializing in git commit messages.
+    companion object {
+        private const val TRANSLATION_SYSTEM_PROMPT = """You are a professional translator specializing in git commit messages.
 Your task is to translate the given commit message to English.
 Rules:
 1. Keep the translation concise and professional
@@ -66,117 +47,62 @@ Rules:
 4. Only output the translated commit message, nothing else
 5. If the input is already in English, return it as is with minor improvements if needed"""
 
-        val request = if (input != null) {
-            ChatRequest(
-                model = model,
-                messages = listOf(
-                    ChatMessage("system", systemPrompt),
-                    ChatMessage("user", input)
-                )
-            )
-        } else {
-            ChatRequest(
-                model = model,
-                messages = listOf(
-                    ChatMessage("user", "Hello! This is a test connection message. Please reply with exactly 'OK'.")
-                )
-            )
+        fun getInstance(): TranslationService {
+            return ApplicationManager.getApplication().getService(TranslationService::class.java)
         }
+    }
 
-        return try {
-            val requestBody = json.encodeToString(request)
-
-            val httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(apiUrl))
-                .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer $apiKey")
-                .timeout(Duration.ofSeconds(15)) // Shorter timeout for testing
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .build()
-
-            val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
-
-            if (response.statusCode() != 200) {
-                val errorBody = response.body()
-                logger.warn("Test connection failed with status ${response.statusCode()}: $errorBody")
-                return Result.failure(RuntimeException("Connection failed (${response.statusCode()}):\n$errorBody"))
-            }
-
-            if (input != null) {
-                val chatResponse = json.decodeFromString<ChatResponse>(response.body())
-                val translatedText = chatResponse.choices.firstOrNull()?.message?.content
-                    ?: return Result.failure(RuntimeException("No response from API"))
-                return Result.success(translatedText.trim())
-            }
-
-            Result.success("Connection successful! API is working properly.")
-        } catch (e: Exception) {
-            logger.warn("Test connection failed", e)
-            Result.failure(e)
-        }
+    fun testConnection(apiUrl: String, apiKey: String, model: String, input: String): Result<String> {
+        return translate(apiUrl, apiKey, model, input, timeoutSeconds = 15)
     }
 
     fun translateToEnglish(text: String): Result<String> {
         val settings = CommitTranslatorSettings.getInstance()
-        
-        if (settings.apiKey.isBlank()) {
-            return Result.failure(IllegalStateException("API Key is not configured"))
-        }
-        
-        if (settings.apiUrl.isBlank()) {
-            return Result.failure(IllegalStateException("API URL is not configured"))
-        }
+        return translate(settings.apiUrl, settings.apiKey, settings.model, text, timeoutSeconds = 60)
+    }
 
-        val systemPrompt = """You are a professional translator specializing in git commit messages.
-Your task is to translate the given commit message to English.
-Rules:
-1. Keep the translation concise and professional
-2. Preserve any technical terms, file names, or code references
-3. Follow conventional commit format if the original uses it
-4. Only output the translated commit message, nothing else
-5. If the input is already in English, return it as is with minor improvements if needed"""
-
-        val request = ChatRequest(
-            model = settings.model,
-            messages = listOf(
-                ChatMessage("system", systemPrompt),
-                ChatMessage("user", text)
-            )
+    private fun translate(
+        apiUrl: String, apiKey: String, model: String,
+        text: String, timeoutSeconds: Long
+    ): Result<String> {
+        val messages = listOf(
+            ChatMessage("system", TRANSLATION_SYSTEM_PROMPT),
+            ChatMessage("user", text)
         )
+        return callApi(apiUrl, apiKey, model, messages, timeoutSeconds).map { response ->
+            extractReply(response) ?: return Result.failure(RuntimeException("No response from API"))
+        }
+    }
 
+    private fun callApi(
+        apiUrl: String, apiKey: String, model: String,
+        messages: List<ChatMessage>, timeoutSeconds: Long
+    ): Result<String> {
         return try {
-            val requestBody = json.encodeToString(request)
-            
+            val requestBody = json.encodeToString(ChatRequest(model, messages))
             val httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(settings.apiUrl))
+                .uri(URI.create(apiUrl))
                 .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer ${settings.apiKey}")
-                .timeout(Duration.ofSeconds(60))
+                .header("Authorization", "Bearer $apiKey")
+                .timeout(Duration.ofSeconds(timeoutSeconds))
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build()
 
             val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
-
             if (response.statusCode() != 200) {
-                val errorBody = response.body()
-                logger.warn("API request failed with status ${response.statusCode()}: $errorBody")
-                return Result.failure(RuntimeException("API request failed (${response.statusCode()}): $errorBody"))
+                logger.warn("API request failed with status ${response.statusCode()}: ${response.body()}")
+                Result.failure(RuntimeException("API request failed (${response.statusCode()}):\n${response.body()}"))
+            } else {
+                Result.success(response.body())
             }
-
-            val chatResponse = json.decodeFromString<ChatResponse>(response.body())
-            val translatedText = chatResponse.choices.firstOrNull()?.message?.content
-                ?: return Result.failure(RuntimeException("No response from API"))
-            
-            Result.success(translatedText.trim())
         } catch (e: Exception) {
-            logger.error("Translation failed", e)
+            logger.warn("API request failed", e)
             Result.failure(e)
         }
     }
 
-    companion object {
-        fun getInstance(): TranslationService {
-            return ApplicationManager.getApplication().getService(TranslationService::class.java)
-        }
+    private fun extractReply(responseBody: String): String? {
+        return json.decodeFromString<ChatResponse>(responseBody)
+            .choices.firstOrNull()?.message?.content?.trim()
     }
 }
