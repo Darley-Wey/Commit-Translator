@@ -7,6 +7,7 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBPasswordField
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
@@ -60,12 +61,10 @@ class CommitTranslatorConfigurable : Configurable {
                             testInputField.text = CommitTranslatorBundle.message("settings.testConnection.input.default")
                             testInputField.lineWrap = true
                             testInputField.wrapStyleWord = true
-                            scrollCell(testInputField)
+                            val inputScrollPane = JBScrollPane(testInputField)
+                            inputScrollPane.preferredSize = java.awt.Dimension(350, 150)
+                            cell(inputScrollPane)
                                 .align(AlignX.LEFT)
-                                .applyToComponent {
-                                    preferredSize = java.awt.Dimension(350, 150)
-                                    minimumSize = java.awt.Dimension(350, 150)
-                                }
                         }
                     }.align(AlignX.LEFT)
 
@@ -77,12 +76,10 @@ class CommitTranslatorConfigurable : Configurable {
                             testOutputField.isEditable = false
                             testOutputField.lineWrap = true
                             testOutputField.wrapStyleWord = true
-                            scrollCell(testOutputField)
+                            val outputScrollPane = JBScrollPane(testOutputField)
+                            outputScrollPane.preferredSize = java.awt.Dimension(350, 150)
+                            cell(outputScrollPane)
                                 .align(AlignX.LEFT)
-                                .applyToComponent {
-                                    preferredSize = java.awt.Dimension(350, 150)
-                                    minimumSize = java.awt.Dimension(350, 150)
-                                }
                         }
                     }.align(AlignX.LEFT)
                 }
@@ -148,6 +145,7 @@ class CommitTranslatorConfigurable : Configurable {
                         errorMessage
                     )
                 }
+                testOutputField.caretPosition = 0
             }, com.intellij.openapi.application.ModalityState.any())
         }
     }
