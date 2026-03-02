@@ -37,19 +37,19 @@ class CommitTranslatorConfigurable : Configurable {
         panel = panel {
             row(CommitTranslatorBundle.message("settings.apiUrl")) {
                 cell(apiUrlField)
-                    .align(AlignX.FILL)
+                    .applyToComponent { columns = 30 }
                     .comment(CommitTranslatorBundle.message("settings.apiUrl.comment"))
             }
 
             row(CommitTranslatorBundle.message("settings.apiKey")) {
                 cell(apiKeyField)
-                    .align(AlignX.FILL)
+                    .applyToComponent { columns = 30 }
                     .comment(CommitTranslatorBundle.message("settings.apiKey.comment"))
             }
 
             row(CommitTranslatorBundle.message("settings.model")) {
                 cell(modelField)
-                    .align(AlignX.FILL)
+                    .applyToComponent { columns = 30 }
                     .comment(CommitTranslatorBundle.message("settings.model.comment"))
             }
 
@@ -58,7 +58,11 @@ class CommitTranslatorConfigurable : Configurable {
             panel {
                 row {
                     label(CommitTranslatorBundle.message("settings.testConnection.input"))
+                        .align(AlignX.FILL)
+                        .resizableColumn()
                     label(CommitTranslatorBundle.message("settings.testConnection.output"))
+                        .align(AlignX.FILL)
+                        .resizableColumn()
                 }.layout(RowLayout.PARENT_GRID)
 
                 row {
@@ -67,9 +71,9 @@ class CommitTranslatorConfigurable : Configurable {
                     testInputField.wrapStyleWord = true
                     scrollCell(testInputField)
                         .align(AlignX.FILL)
+                        .resizableColumn()
                         .applyToComponent {
-                            preferredSize = java.awt.Dimension(300, 150)
-                            minimumSize = java.awt.Dimension(200, 100)
+                            preferredSize = java.awt.Dimension(0, 150)
                         }
 
                     testOutputField.isEditable = false
@@ -77,18 +81,19 @@ class CommitTranslatorConfigurable : Configurable {
                     testOutputField.wrapStyleWord = true
                     scrollCell(testOutputField)
                         .align(AlignX.FILL)
+                        .resizableColumn()
                         .applyToComponent {
-                            preferredSize = java.awt.Dimension(300, 150)
-                            minimumSize = java.awt.Dimension(200, 100)
+                            preferredSize = java.awt.Dimension(0, 150)
                         }
                 }.layout(RowLayout.PARENT_GRID)
+                 .resizableRow()
 
                 row {
                     testButton = button(CommitTranslatorBundle.message("settings.testConnection")) {
                         testConnection()
                     }.component
                 }
-            }
+            }.align(AlignX.FILL)
         }.apply {
             // Set a preferred width for the entire panel
             preferredSize = java.awt.Dimension(800, 600)
