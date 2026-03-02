@@ -13,3 +13,8 @@ src/test/resources/local.properties
 test-env.sh
 test-env.bat
 .env.test
+
+# Multi-provider test configurations
+test-providers.sh
+test-providers.bat
+.provider-configs/

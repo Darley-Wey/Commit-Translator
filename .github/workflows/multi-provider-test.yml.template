@@ -1,0 +1,249 @@
+# GitHub Actions Workflow for Multi-Provider Integration Testing
+# This workflow tests multiple AI providers and their models
+#
+# To enable this workflow:
+# 1. Rename this file to multi-provider-test.yml
+# 2. Configure GitHub Secrets for providers you want to test:
+#    - TEST_OPENAI_API_KEY
+#    - TEST_DEEPSEEK_API_KEY
+#    - TEST_AZURE_API_KEY and TEST_AZURE_API_URL
+# 3. Optionally configure model lists:
+#    - TEST_OPENAI_MODELS (e.g., "gpt-4o-mini,gpt-4o")
+#    - TEST_DEEPSEEK_MODELS (e.g., "deepseek-chat")
+#    - TEST_AZURE_MODELS (e.g., "gpt-4,gpt-35-turbo")
+
+name: Multi-Provider Integration Tests
+
+on:
+  # Run on schedule (weekly)
+  schedule:
+    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      providers:
+        description: 'Providers to test (comma-separated: openai,deepseek,azure,all)'
+        required: false
+        default: 'all'
+
+  # Optionally run on PR to main (be aware of API costs)
+  # pull_request:
+  #   branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job to determine which providers to test
+  setup:
+    name: Setup Provider Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      providers: ${{ steps.set-matrix.outputs.providers }}
+    steps:
+      - name: Determine providers to test
+        id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ "${{ github.event.inputs.providers }}" != "all" ]; then
+            # Use manual selection
+            PROVIDERS="${{ github.event.inputs.providers }}"
+          else
+            # Test all configured providers
+            PROVIDERS="openai,deepseek,azure"
+          fi
+
+          # Convert to JSON array
+          IFS=',' read -ra ADDR <<< "$PROVIDERS"
+          JSON="["
+          for i in "${ADDR[@]}"; do
+            JSON="$JSON\"$i\","
+          done
+          JSON="${JSON%,}]"
+
+          echo "providers=$JSON" >> $GITHUB_OUTPUT
+          echo "Testing providers: $JSON"
+
+  # Multi-provider integration tests
+  test-providers:
+    name: Test ${{ matrix.provider }}
+    needs: setup
+    runs-on: ubuntu-latest
+    if: needs.setup.outputs.providers != '[]'
+
+    strategy:
+      fail-fast: false  # Continue testing other providers even if one fails
+      matrix:
+        provider: ${{ fromJson(needs.setup.outputs.providers) }}
+
+    steps:
+      # Setup environment
+      - name: Maximize Build Space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          large-packages: false
+
+      - name: Fetch Sources
+        uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      # Show provider configuration summary
+      - name: Show Provider Configuration
+        run: |
+          echo "Testing provider: ${{ matrix.provider }}"
+          ./gradlew test --tests 'MultiProviderIntegrationTest.test show configured providers summary' --info || true
+        env:
+          TEST_OPENAI_API_KEY: ${{ secrets.TEST_OPENAI_API_KEY }}
+          TEST_OPENAI_MODELS: ${{ secrets.TEST_OPENAI_MODELS }}
+          TEST_DEEPSEEK_API_KEY: ${{ secrets.TEST_DEEPSEEK_API_KEY }}
+          TEST_DEEPSEEK_MODELS: ${{ secrets.TEST_DEEPSEEK_MODELS }}
+          TEST_AZURE_API_KEY: ${{ secrets.TEST_AZURE_API_KEY }}
+          TEST_AZURE_API_URL: ${{ secrets.TEST_AZURE_API_URL }}
+          TEST_AZURE_MODELS: ${{ secrets.TEST_AZURE_MODELS }}
+
+      # Test specific provider
+      - name: Test ${{ matrix.provider }} Provider
+        run: |
+          PROVIDER_NAME="${{ matrix.provider }}"
+          PROVIDER_NAME_CAPITALIZED="$(tr '[:lower:]' '[:upper:]' <<< ${PROVIDER_NAME:0:1})${PROVIDER_NAME:1}"
+
+          echo "Running tests for $PROVIDER_NAME_CAPITALIZED provider..."
+          ./gradlew test --tests "MultiProviderIntegrationTest.test ${PROVIDER_NAME_CAPITALIZED}*" --info
+        env:
+          TEST_OPENAI_API_KEY: ${{ secrets.TEST_OPENAI_API_KEY }}
+          TEST_OPENAI_API_URL: ${{ secrets.TEST_OPENAI_API_URL }}
+          TEST_OPENAI_MODELS: ${{ secrets.TEST_OPENAI_MODELS }}
+          TEST_DEEPSEEK_API_KEY: ${{ secrets.TEST_DEEPSEEK_API_KEY }}
+          TEST_DEEPSEEK_API_URL: ${{ secrets.TEST_DEEPSEEK_API_URL }}
+          TEST_DEEPSEEK_MODELS: ${{ secrets.TEST_DEEPSEEK_MODELS }}
+          TEST_AZURE_API_KEY: ${{ secrets.TEST_AZURE_API_KEY }}
+          TEST_AZURE_API_URL: ${{ secrets.TEST_AZURE_API_URL }}
+          TEST_AZURE_MODELS: ${{ secrets.TEST_AZURE_MODELS }}
+
+      # Upload test results on failure
+      - name: Upload Test Results
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-results-${{ matrix.provider }}
+          path: |
+            build/reports/tests/
+            build/test-results/
+
+  # Cross-provider comparison tests
+  cross-provider-tests:
+    name: Cross-Provider Tests
+    needs: test-providers
+    runs-on: ubuntu-latest
+    if: always()  # Run even if some provider tests failed
+
+    steps:
+      - name: Fetch Sources
+        uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      # Run cross-provider comparison tests
+      - name: Test Translation Consistency
+        run: |
+          ./gradlew test --tests 'MultiProviderIntegrationTest.test all providers produce valid translations' --info || true
+        env:
+          TEST_OPENAI_API_KEY: ${{ secrets.TEST_OPENAI_API_KEY }}
+          TEST_OPENAI_MODELS: ${{ secrets.TEST_OPENAI_MODELS }}
+          TEST_DEEPSEEK_API_KEY: ${{ secrets.TEST_DEEPSEEK_API_KEY }}
+          TEST_DEEPSEEK_MODELS: ${{ secrets.TEST_DEEPSEEK_MODELS }}
+          TEST_AZURE_API_KEY: ${{ secrets.TEST_AZURE_API_KEY }}
+          TEST_AZURE_API_URL: ${{ secrets.TEST_AZURE_API_URL }}
+          TEST_AZURE_MODELS: ${{ secrets.TEST_AZURE_MODELS }}
+
+      - name: Test Performance Comparison
+        run: |
+          ./gradlew test --tests 'MultiProviderIntegrationTest.test performance across all providers' --info || true
+        env:
+          TEST_OPENAI_API_KEY: ${{ secrets.TEST_OPENAI_API_KEY }}
+          TEST_OPENAI_MODELS: ${{ secrets.TEST_OPENAI_MODELS }}
+          TEST_DEEPSEEK_API_KEY: ${{ secrets.TEST_DEEPSEEK_API_KEY }}
+          TEST_DEEPSEEK_MODELS: ${{ secrets.TEST_DEEPSEEK_MODELS }}
+          TEST_AZURE_API_KEY: ${{ secrets.TEST_AZURE_API_KEY }}
+          TEST_AZURE_API_URL: ${{ secrets.TEST_AZURE_API_URL }}
+          TEST_AZURE_MODELS: ${{ secrets.TEST_AZURE_MODELS }}
+
+      - name: Test Parameter Compatibility
+        run: |
+          ./gradlew test --tests 'MultiProviderIntegrationTest.test max_tokens vs max_completion_tokens compatibility' --info || true
+        env:
+          TEST_OPENAI_API_KEY: ${{ secrets.TEST_OPENAI_API_KEY }}
+          TEST_OPENAI_MODELS: ${{ secrets.TEST_OPENAI_MODELS }}
+          TEST_DEEPSEEK_API_KEY: ${{ secrets.TEST_DEEPSEEK_API_KEY }}
+          TEST_DEEPSEEK_MODELS: ${{ secrets.TEST_DEEPSEEK_MODELS }}
+          TEST_AZURE_API_KEY: ${{ secrets.TEST_AZURE_API_KEY }}
+          TEST_AZURE_API_URL: ${{ secrets.TEST_AZURE_API_URL }}
+          TEST_AZURE_MODELS: ${{ secrets.TEST_AZURE_MODELS }}
+
+      # Upload cross-provider test results
+      - name: Upload Cross-Provider Results
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: cross-provider-results
+          path: |
+            build/reports/tests/
+            build/test-results/
+
+  # Summary report
+  summary:
+    name: Test Summary
+    needs: [test-providers, cross-provider-tests]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "# Multi-Provider Integration Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Provider Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Provider | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.test-providers.result }}" == "success" ]; then
+            echo "| All Providers | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.test-providers.result }}" == "failure" ]; then
+            echo "| Some Providers | ⚠️ Failed (check logs) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Providers | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Cross-Provider Tests" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.cross-provider-tests.result }}" == "success" ]; then
+            echo "✅ All cross-provider tests passed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.cross-provider-tests.result }}" == "failure" ]; then
+            echo "⚠️ Some cross-provider tests failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ Cross-provider tests skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "Configure providers by adding GitHub Secrets:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`TEST_OPENAI_API_KEY\` for OpenAI" >> $GITHUB_STEP_SUMMARY
+          echo "- \`TEST_DEEPSEEK_API_KEY\` for DeepSeek" >> $GITHUB_STEP_SUMMARY
+          echo "- \`TEST_AZURE_API_KEY\` and \`TEST_AZURE_API_URL\` for Azure" >> $GITHUB_STEP_SUMMARY

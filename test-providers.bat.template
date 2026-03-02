@@ -1,0 +1,57 @@
+@echo off
+REM Multi-Provider Test Configuration Template for Windows
+REM Copy this file to test-providers.bat and fill in your API keys
+REM Usage: test-providers.bat && gradlew test --tests MultiProviderIntegrationTest
+
+echo Loading multi-provider test configuration...
+
+REM ============================================================================
+REM OpenAI Configuration
+REM ============================================================================
+REM Get your API key from: https://platform.openai.com/api-keys
+set TEST_OPENAI_API_KEY=sk-your-openai-api-key-here
+set TEST_OPENAI_API_URL=https://api.openai.com/v1/chat/completions
+set TEST_OPENAI_MODELS=gpt-4o-mini,gpt-4o
+
+REM ============================================================================
+REM DeepSeek Configuration
+REM ============================================================================
+REM Get your API key from: https://platform.deepseek.com/
+REM set TEST_DEEPSEEK_API_KEY=your-deepseek-api-key-here
+REM set TEST_DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions
+REM set TEST_DEEPSEEK_MODELS=deepseek-chat,deepseek-coder
+
+REM ============================================================================
+REM Azure OpenAI Configuration
+REM ============================================================================
+REM Configure your Azure OpenAI deployment
+REM set TEST_AZURE_API_KEY=your-azure-api-key-here
+REM set TEST_AZURE_API_URL=https://your-resource.openai.azure.com/openai/deployments/your-deployment/chat/completions?api-version=2024-02-15
+REM set TEST_AZURE_MODELS=gpt-4,gpt-35-turbo
+
+REM ============================================================================
+REM Ollama Local LLM Configuration
+REM ============================================================================
+REM Make sure Ollama is running: ollama serve
+REM Pull models first: ollama pull llama2
+REM set TEST_OLLAMA_API_KEY=dummy
+REM set TEST_OLLAMA_API_URL=http://localhost:11434/v1/chat/completions
+REM set TEST_OLLAMA_MODELS=llama2,mistral,qwen
+
+REM ============================================================================
+REM Custom Provider Configuration
+REM ============================================================================
+REM For any other OpenAI-compatible API
+REM set TEST_CUSTOM_API_KEY=your-custom-api-key-here
+REM set TEST_CUSTOM_API_URL=https://your-api.example.com/v1/chat/completions
+REM set TEST_CUSTOM_MODELS=model1,model2
+
+echo.
+echo Provider configurations loaded
+echo.
+echo To run tests:
+echo   gradlew test --tests MultiProviderIntegrationTest
+echo.
+echo To test specific provider:
+echo   gradlew test --tests "MultiProviderIntegrationTest.test OpenAI*"
+echo.

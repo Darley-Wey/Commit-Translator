@@ -1,0 +1,63 @@
+#!/bin/bash
+# Multi-Provider Test Configuration Template
+# Copy this file to test-providers.sh and fill in your API keys
+# Usage: source test-providers.sh && ./gradlew test --tests MultiProviderIntegrationTest
+
+echo "Loading multi-provider test configuration..."
+
+# ============================================================================
+# OpenAI Configuration
+# ============================================================================
+# Get your API key from: https://platform.openai.com/api-keys
+export TEST_OPENAI_API_KEY="sk-your-openai-api-key-here"
+export TEST_OPENAI_API_URL="https://api.openai.com/v1/chat/completions"  # Optional
+export TEST_OPENAI_MODELS="gpt-4o-mini,gpt-4o"  # Optional, comma-separated
+
+# ============================================================================
+# DeepSeek Configuration
+# ============================================================================
+# Get your API key from: https://platform.deepseek.com/
+# export TEST_DEEPSEEK_API_KEY="your-deepseek-api-key-here"
+# export TEST_DEEPSEEK_API_URL="https://api.deepseek.com/v1/chat/completions"  # Optional
+# export TEST_DEEPSEEK_MODELS="deepseek-chat,deepseek-coder"  # Optional
+
+# ============================================================================
+# Azure OpenAI Configuration
+# ============================================================================
+# Configure your Azure OpenAI deployment
+# export TEST_AZURE_API_KEY="your-azure-api-key-here"
+# export TEST_AZURE_API_URL="https://your-resource.openai.azure.com/openai/deployments/your-deployment/chat/completions?api-version=2024-02-15"
+# export TEST_AZURE_MODELS="gpt-4,gpt-35-turbo"  # Your deployment models
+
+# ============================================================================
+# Ollama Local LLM Configuration
+# ============================================================================
+# Make sure Ollama is running: ollama serve
+# Pull models first: ollama pull llama2
+# export TEST_OLLAMA_API_KEY="dummy"  # Ollama doesn't need a real key
+# export TEST_OLLAMA_API_URL="http://localhost:11434/v1/chat/completions"  # Optional
+# export TEST_OLLAMA_MODELS="llama2,mistral,qwen"  # Optional
+
+# ============================================================================
+# Custom Provider Configuration
+# ============================================================================
+# For any other OpenAI-compatible API
+# export TEST_CUSTOM_API_KEY="your-custom-api-key-here"
+# export TEST_CUSTOM_API_URL="https://your-api.example.com/v1/chat/completions"
+# export TEST_CUSTOM_MODELS="model1,model2"
+
+# ============================================================================
+# Configuration Summary
+# ============================================================================
+echo ""
+echo "✓ Provider configurations loaded"
+echo ""
+echo "Configured providers (API keys masked):"
+env | grep "^TEST_.*_API_KEY=" | sed 's/=.*/=***/' | sort
+echo ""
+echo "To run tests:"
+echo "  ./gradlew test --tests MultiProviderIntegrationTest"
+echo ""
+echo "To test specific provider:"
+echo "  ./gradlew test --tests 'MultiProviderIntegrationTest.test OpenAI*'"
+echo ""

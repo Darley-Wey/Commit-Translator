@@ -75,6 +75,7 @@ open build/reports/kover/html/index.html
 
 To run end-to-end integration tests with real API calls:
 
+**Single Provider:**
 ```bash
 # Set your test API key
 export TEST_OPENAI_API_KEY="sk-your-api-key"
@@ -83,7 +84,21 @@ export TEST_OPENAI_API_KEY="sk-your-api-key"
 ./gradlew test --tests TranslationServiceIntegrationTest
 ```
 
-For more details, see [Integration Testing Guide (中文)](INTEGRATION_TESTING_CN.md).
+**Multiple Providers:**
+```bash
+# Configure multiple providers
+export TEST_OPENAI_API_KEY="sk-your-key"
+export TEST_OPENAI_MODELS="gpt-4o-mini,gpt-4o"
+export TEST_DEEPSEEK_API_KEY="your-deepseek-key"
+export TEST_DEEPSEEK_MODELS="deepseek-chat"
+
+# Run multi-provider tests
+./gradlew test --tests MultiProviderIntegrationTest
+```
+
+For more details:
+- [Integration Testing Guide (中文)](INTEGRATION_TESTING_CN.md)
+- [Multi-Provider Testing Guide (中文)](MULTI_PROVIDER_TESTING_CN.md)
 
 ### Automated Testing
 
@@ -96,6 +111,7 @@ For detailed testing documentation:
 - 📖 [Testing Guide (English)](src/test/README.md)
 - 📖 [测试指南 (中文)](TESTING_CN.md)
 - 📖 [Integration Testing Guide (中文)](INTEGRATION_TESTING_CN.md)
+- 📖 [Multi-Provider Testing Guide (中文)](MULTI_PROVIDER_TESTING_CN.md)
 - 📖 [Test API Key Configuration (中文)](TEST_API_KEY_CONFIG_CN.md)
 
 ---
