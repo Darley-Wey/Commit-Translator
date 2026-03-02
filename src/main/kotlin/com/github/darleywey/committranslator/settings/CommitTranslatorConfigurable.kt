@@ -9,15 +9,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBPasswordField
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
-import com.intellij.ui.dsl.builder.AlignY
-import com.intellij.ui.dsl.builder.RowLayout
 import com.intellij.ui.dsl.builder.panel
-import java.text.MessageFormat
 import javax.swing.JButton
 import javax.swing.JComponent
-import javax.swing.JLabel
 
 class CommitTranslatorConfigurable : Configurable {
 
@@ -118,7 +113,7 @@ class CommitTranslatorConfigurable : Configurable {
 
         if (apiUrl.isEmpty() || apiKey.isEmpty() || model.isEmpty()) {
             Messages.showWarningDialog(
-                "Please fill in all fields (API URL, API Key, and Model) to test the connection.",
+                CommitTranslatorBundle.message("settings.testConnection.fillAllFields"),
                 CommitTranslatorBundle.message("settings.testConnection")
             )
             return
@@ -126,7 +121,7 @@ class CommitTranslatorConfigurable : Configurable {
 
         if (input.isEmpty()) {
             Messages.showWarningDialog(
-                "Please provide test input.",
+                CommitTranslatorBundle.message("settings.testConnection.provideInput"),
                 CommitTranslatorBundle.message("settings.testConnection")
             )
             return
@@ -135,20 +130,21 @@ class CommitTranslatorConfigurable : Configurable {
         testButton?.isEnabled = false
         testOutputField.text = CommitTranslatorBundle.message("settings.testConnection.translating")
 
-        // Run network operation in background thread
+        // Run network operation in the background thread
         ApplicationManager.getApplication().executeOnPooledThread {
             val service = TranslationService.getInstance()
             val result = service.testConnection(apiUrl, apiKey, model, input)
 
-            // Show result in UI thread
+            // Show result in a UI thread
             ApplicationManager.getApplication().invokeLater({
                 testButton?.isEnabled = true
                 if (result.isSuccess) {
                     testOutputField.text = result.getOrNull() ?: ""
                 } else {
-                    val errorMessage = result.exceptionOrNull()?.message ?: "Unknown error"
-                    testOutputField.text = MessageFormat.format(
-                        CommitTranslatorBundle.message("settings.testConnection.error"),
+                    val errorMessage = result.exceptionOrNull()?.message
+                        ?: CommitTranslatorBundle.message("action.translate.unknownError")
+                    testOutputField.text = CommitTranslatorBundle.message(
+                        "settings.testConnection.error",
                         errorMessage
                     )
                 }

@@ -1,5 +1,6 @@
 package com.github.darleywey.committranslator.services
 
+import com.github.darleywey.committranslator.CommitTranslatorBundle
 import com.github.darleywey.committranslator.settings.CommitTranslatorSettings
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -70,7 +71,7 @@ Rules:
             ChatMessage("user", text)
         )
         return callApi(apiUrl, apiKey, model, messages, timeoutSeconds).map { response ->
-            extractReply(response) ?: return Result.failure(RuntimeException("No response from API"))
+            extractReply(response) ?: return Result.failure(RuntimeException(CommitTranslatorBundle.message("error.noResponse")))
         }
     }
 
@@ -91,7 +92,7 @@ Rules:
             val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
             if (response.statusCode() != 200) {
                 logger.warn("API request failed with status ${response.statusCode()}: ${response.body()}")
-                Result.failure(RuntimeException("API request failed (${response.statusCode()}):\n${response.body()}"))
+                Result.failure(RuntimeException(CommitTranslatorBundle.message("error.apiRequestFailed", response.statusCode(), response.body())))
             } else {
                 Result.success(response.body())
             }

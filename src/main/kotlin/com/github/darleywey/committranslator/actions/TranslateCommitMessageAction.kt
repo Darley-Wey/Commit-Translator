@@ -20,10 +20,10 @@ class TranslateCommitMessageAction : AnAction() {
     @Volatile
     private var isTranslating = false
 
-    private val COMMIT_MESSAGE_CONTROL = DataKey.create<Any>("Vcs.CommitMessage.Control")
-    private val CHECKIN_PANEL = DataKey.create<Any>("Vcs.CheckinProjectPanel")
-    private val REFRESHABLE_PANEL = DataKey.create<Any>("RefreshablePanel")
-    private val WORKFLOW_HANDLER = DataKey.create<Any>("Vcs.CommitWorkflowHandler")
+    private val commitMessageControl = DataKey.create<Any>("Vcs.CommitMessage.Control")
+    private val checkinPanel = DataKey.create<Any>("Vcs.CheckinProjectPanel")
+    private val refreshablePanel = DataKey.create<Any>("RefreshablePanel")
+    private val workflowHandler = DataKey.create<Any>("Vcs.CommitWorkflowHandler")
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
@@ -79,7 +79,7 @@ class TranslateCommitMessageAction : AnAction() {
                             updateCommitMessage(commitMessage, translatedText)
                         },
                         onFailure = { error ->
-                            val errorMessage: String = CommitTranslatorBundle.message("action.translate.error", error.message ?: "Unknown error")
+                            val errorMessage: String = CommitTranslatorBundle.message("action.translate.error", error.message ?: CommitTranslatorBundle.message("action.translate.unknownError"))
                             val title: String = CommitTranslatorBundle.message("action.translate.title")
                             Messages.showErrorDialog(project, errorMessage, title)
                         }
@@ -133,7 +133,7 @@ class TranslateCommitMessageAction : AnAction() {
             methods.find { it.name == "getText" || it.name == "getComment" }?.let {
                 return it.invoke(commitMessage) as? String
             }
-        } catch (ex: Exception) {}
+        } catch (_: Exception) {}
         return null
     }
 
@@ -158,20 +158,20 @@ class TranslateCommitMessageAction : AnAction() {
                     }?.invoke(uiObj, text)
                 }
             }
-        } catch (ex: Exception) {}
+        } catch (_: Exception) {}
     }
 
     private fun findCommitMessage(e: AnActionEvent): Any? {
-        e.getData(COMMIT_MESSAGE_CONTROL)?.let { return it }
+        e.getData(commitMessageControl)?.let { return it }
 
-        e.getData(WORKFLOW_HANDLER)?.let { handler ->
+        e.getData(workflowHandler)?.let { handler ->
             try {
                 handler.javaClass.methods.find { it.name == "getUi" }?.invoke(handler)?.let { return it }
-            } catch (ex: Exception) {}
+            } catch (_: Exception) {}
         }
 
-        e.getData(CHECKIN_PANEL)?.let { return it }
-        e.getData(REFRESHABLE_PANEL)?.let { return it }
+        e.getData(checkinPanel)?.let { return it }
+        e.getData(refreshablePanel)?.let { return it }
 
         var component = e.getData(com.intellij.openapi.actionSystem.PlatformCoreDataKeys.CONTEXT_COMPONENT)
         while (component != null) {
@@ -182,7 +182,7 @@ class TranslateCommitMessageAction : AnAction() {
             if (methods.any { it.name == "getEditorField" }) {
                 try {
                     methods.find { it.name == "getEditorField" }?.invoke(component)?.let { return it }
-                } catch (ex: Exception) {}
+                } catch (_: Exception) {}
             }
             component = component.parent
         }

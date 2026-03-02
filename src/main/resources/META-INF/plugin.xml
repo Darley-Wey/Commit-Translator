@@ -22,8 +22,6 @@
         <!-- Translate Commit Message Action -->
         <action id="CommitTranslator.TranslateCommitMessage"
                 class="com.github.darleywey.committranslator.actions.TranslateCommitMessageAction"
-                text="Translate to English"
-                description="Translate commit message to English using AI"
                 icon="/icons/translate.svg">
             <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
         </action>
