@@ -37,19 +37,19 @@ class CommitTranslatorConfigurable : Configurable {
         panel = panel {
             row(CommitTranslatorBundle.message("settings.apiUrl")) {
                 cell(apiUrlField)
-                    .applyToComponent { columns = 30 }
+                    .applyToComponent { columns = 35 }
                     .comment(CommitTranslatorBundle.message("settings.apiUrl.comment"))
             }
 
             row(CommitTranslatorBundle.message("settings.apiKey")) {
                 cell(apiKeyField)
-                    .applyToComponent { columns = 30 }
+                    .applyToComponent { columns = 35 }
                     .comment(CommitTranslatorBundle.message("settings.apiKey.comment"))
             }
 
             row(CommitTranslatorBundle.message("settings.model")) {
                 cell(modelField)
-                    .applyToComponent { columns = 30 }
+                    .applyToComponent { columns = 35 }
                     .comment(CommitTranslatorBundle.message("settings.model.comment"))
             }
 
@@ -58,42 +58,39 @@ class CommitTranslatorConfigurable : Configurable {
             panel {
                 row {
                     label(CommitTranslatorBundle.message("settings.testConnection.input"))
-                        .align(AlignX.FILL)
-                        .resizableColumn()
+                        .align(AlignX.LEFT)
                     label(CommitTranslatorBundle.message("settings.testConnection.output"))
-                        .align(AlignX.FILL)
-                        .resizableColumn()
-                }.layout(RowLayout.PARENT_GRID)
+                        .align(AlignX.LEFT)
+                }
 
                 row {
                     testInputField.text = CommitTranslatorBundle.message("settings.testConnection.input.default")
                     testInputField.lineWrap = true
                     testInputField.wrapStyleWord = true
                     scrollCell(testInputField)
-                        .align(AlignX.FILL)
-                        .resizableColumn()
+                        .align(AlignX.LEFT)
                         .applyToComponent {
-                            preferredSize = java.awt.Dimension(0, 150)
+                            preferredSize = java.awt.Dimension(350, 150)
+                            minimumSize = java.awt.Dimension(350, 150)
                         }
 
                     testOutputField.isEditable = false
                     testOutputField.lineWrap = true
                     testOutputField.wrapStyleWord = true
                     scrollCell(testOutputField)
-                        .align(AlignX.FILL)
-                        .resizableColumn()
+                        .align(AlignX.LEFT)
                         .applyToComponent {
-                            preferredSize = java.awt.Dimension(0, 150)
+                            preferredSize = java.awt.Dimension(350, 150)
+                            minimumSize = java.awt.Dimension(350, 150)
                         }
-                }.layout(RowLayout.PARENT_GRID)
-                 .resizableRow()
+                }
 
                 row {
                     testButton = button(CommitTranslatorBundle.message("settings.testConnection")) {
                         testConnection()
                     }.component
                 }
-            }.align(AlignX.FILL)
+            }
         }.apply {
             // Set a preferred width for the entire panel
             preferredSize = java.awt.Dimension(800, 600)
