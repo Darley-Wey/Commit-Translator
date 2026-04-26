@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-04-26
+
+### Changed
+
+- Expanded IDE compatibility to IntelliJ Platform 2024.2+
+
 ## [0.0.3] - 2026-03-03
 
 ### Added
@@ -41,7 +47,8 @@
 - Configurable API endpoint, model settings
 - English and Chinese (Simplified) localization
 
-[Unreleased]: https://github.com/Darley-Wey/Commit-Translator/compare/v0.0.3...HEAD
+[Unreleased]: https://github.com/Darley-Wey/Commit-Translator/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/Darley-Wey/Commit-Translator/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/Darley-Wey/Commit-Translator/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/Darley-Wey/Commit-Translator/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/Darley-Wey/Commit-Translator/commits/v0.0.1

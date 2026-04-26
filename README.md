@@ -1,5 +1,7 @@
 # Commit Translator
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 ![Build](https://github.com/Darley-Wey/Commit-Translator/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/29868.svg)](https://plugins.jetbrains.com/plugin/29868)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/29868.svg)](https://plugins.jetbrains.com/plugin/29868)
