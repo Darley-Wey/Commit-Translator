@@ -1,6 +1,6 @@
 [versions]
 # libraries
-kotlinxSerialization = "1.10.0"
+kotlinxSerialization = "1.11.0"
 junit = "4.13.2"
 opentest4j = "1.3.0"
 
